@@ -61,7 +61,7 @@ def main():
     print_subtitle("ÉTAPE 2 : Enregistrement d’un nouvel utilisateur (Microservice Users)")
     registration_data = {
         "name": "John ie",
-        "email": "johndoe@gmaz.com",
+        "email": "johndoe@gmeaz.com",
         "password": "mySecurePassword123",
         "dateOfBirth": "1990-01-01"
     }
