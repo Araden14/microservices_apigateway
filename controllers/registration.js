@@ -4,8 +4,7 @@ const router = express.Router();
 module.exports.register = async (req, res) => {
     try {
    
-  
-      const response = await fetch(`http://localhost:5000/createUser`, {
+      const response = await fetch(`${process.env.CUSTOMER_SERVICE_URL}/createUser`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

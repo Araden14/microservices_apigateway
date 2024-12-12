@@ -1,0 +1,119 @@
+services:
+  # API Gateway
+  apigateway:
+    container_name: apigateway
+    build: ./microservice_apigateway
+    environment:
+      - ROOM_SERVICE_URL=http://room:3001
+      - RESERVATION_SERVICE_URL=http://reservation:4000
+      - CUSTOMER_SERVICE_URL=http://customer:5000
+      - PAYMENT_SERVICE_URL=http://payment:7000
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - room
+      - reservation
+      - customer
+      - payment
+
+  # Room Service
+  room:
+    build: ../microserviceChambre
+    container_name: room
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGO_URI=mongodb://roomdb:27017/hotel_db
+      - PORT=3001
+    depends_on:
+      - roomdb
+
+  roomdb:
+    image: mongo:latest
+    container_name: roomdb
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongodb_room_data:/data/db
+
+  # Customer Service
+  customer:
+    container_name: customer
+    build: ../Projet-microservice
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://customerdb:27017/userdb
+      - PORT=5000
+    depends_on:
+      - customerdb
+
+  customerdb:
+    image: mongo:latest
+    container_name: customerdb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_customer_data:/data/db
+
+  # Reservation Service
+  reservation:
+    container_name: reservation
+    build: ../Reservation-micro-service
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URI=mongodb://reservationdb:27017/reservations
+    depends_on:
+      - reservationdb
+
+  reservationdb:
+    image: mongo:6.0
+    container_name: reservationdb
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb_reservation_data:/data/db
+
+  # Payment Service
+  payment:
+    container_name: payment
+    build: ../microservices_hotelpayment
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:7000 wsgi:application"
+    volumes:
+      - ../microservices_hotelpayment:/app
+    ports:
+      - "7000:7000"
+    environment:
+      - POSTGRES_DB=django
+      - POSTGRES_USER=django
+      - POSTGRES_PASSWORD=django
+      - POSTGRES_HOST=paymentdb
+      - POSTGRES_PORT=5432
+      - PORT=7000
+    depends_on:
+      - paymentdb
+
+  paymentdb:
+    image: postgres:13
+    container_name: paymentdb
+    environment:
+      - POSTGRES_DB=django
+      - POSTGRES_USER=django
+      - POSTGRES_PASSWORD=django
+      - POSTGRES_HOST=paymentdb
+      - POSTGRES_PORT=5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_payment_data:/var/lib/postgresql/data
+
+volumes:
+  mongodb_room_data:
+  mongodb_customer_data:
+  mongodb_reservation_data:
+  postgres_payment_data:
